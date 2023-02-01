@@ -6,7 +6,6 @@
 #include <sys/time.h>
 #include "complex.h"
 
-#define SEED      123		// random seed
 #define N         2		// number of reaction
 #define M         2		// number of chemical species
 	
@@ -25,9 +24,10 @@ void init(int x[], int s[N][M]){
 }
 
 
-void update_p(double p[], double k_on, double k_off, int x[]){
-	p[0] = k_on;
+void update_p(double t, double p[], double k_on, double k_off, int x[]){
+	p[0] = 4*(1-exp(-0.2*t))*exp(-0.2*t);
 	p[1] = k_off;
+	//printf("Time %f, k_on = %f, k_off = %f\n", t, p[0], p[1]);
 }
 
 
@@ -56,14 +56,6 @@ void update_x(int x[], int reaction){
 	} 
 }
 
-//void update_x(int x[], int s[N][M], int reaction){
-//	int i;
-//	for(i=0; i<2; i++){
-//		x[i] += s[reaction][i];
-//	}
-//}
-
-
 double sum(double a[], int n){
 	int i;
 	double s=0.0;
@@ -88,16 +80,19 @@ int two_state_ssa(int* x1, int* x2, double* times, double end_time, double time_
 
 	init(x, s);
     int i = 0;
-	srand(SEED);
+    time_t current_time = time(NULL);
+    double seed = (double)current_time + (double)clock() / CLOCKS_PER_SEC;
+    srand((unsigned int)(seed * 1000000.0));
+    //printf("Seed: %f\n", seed);
 	x1[0] = 1;
 	x2[0] = 0;
 		
 	// main loop
-	printf("Time: 0 hours, x1=%d, x2=%d \n", x1[0], x2[0]);
+	//printf("Time: 0 hours, x1=%d, x2=%d \n", x1[0], x2[0]);
 	while(t < end_time){
 		
 		// update propencity
-		update_p(p, k_on, k_off, x);
+		update_p(t, p, k_on, k_off, x);
 		sum_propencity = sum(p, N);
 	    i += 1;
 
@@ -110,6 +105,7 @@ int two_state_ssa(int* x1, int* x2, double* times, double end_time, double time_
 	
 		// select reaction
 		r = (double)rand()/INT_MAX;
+		//printf("Random num: %f\n",r);
 		reaction = select_reaction(p, N, sum_propencity, r);
 		// update chemical species
 		update_x(x, reaction);
@@ -119,7 +115,7 @@ int two_state_ssa(int* x1, int* x2, double* times, double end_time, double time_
 		// time
 		t += tau;
 		times[i] = t;
-	    printf("%d Time: %f hours, Reaction: %d x1=%d, x2=%d \n", i, t, reaction, x1[i], x2[i]);	
+	    //printf("%d Time: %f hours, Reaction: %d x1=%d, x2=%d \n", i, t, reaction, x1[i], x2[i]);	
 	}
 	
 	return(0);
@@ -137,15 +133,8 @@ static PyObject* two_state(PyObject* Py_UNUSED(self), PyObject* args) {
     double time_step = PyFloat_AsDouble(PyList_GetItem(list, 1));
     double k_on = PyFloat_AsDouble(PyList_GetItem(list, 2));
     double k_off = PyFloat_AsDouble(PyList_GetItem(list, 3));
-
-    printf("\n\n###################\n");
-    printf("Parameters:\n\n");
-    printf("end_time = %f \n", end_time);
-    printf("k_on =  %f\n", k_on);
-    printf("k_off = %f\n", k_off);
-    printf("###################\n\n");
-    
-	int Nt = 45;
+ 
+	int Nt = 100;
 	int* x1 = calloc(Nt, sizeof(int));
 	int* x2 = calloc(Nt, sizeof(int));
 	double* times = calloc(Nt, sizeof(double));
@@ -154,13 +143,14 @@ static PyObject* two_state(PyObject* Py_UNUSED(self), PyObject* args) {
 	npy_intp dims[1] = {Nt}; //row major order
 	PyObject *x1_out = PyArray_SimpleNew(1, dims, NPY_INT);
 	PyObject *x2_out = PyArray_SimpleNew(1, dims, NPY_INT);
-
-	printf("x1_out memory location: %p\n", (void *)x1_out);
-	printf("x2_out memory location: %p\n", (void *)x2_out);
+	PyObject *times_out = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
     memcpy(PyArray_DATA(x1_out), x1, Nt * sizeof(int));
 	memcpy(PyArray_DATA(x2_out), x2, Nt * sizeof(int));
+	memcpy(PyArray_DATA(times_out), times, Nt * sizeof(double));
 
-	return Py_BuildValue("(OO)", x1_out, x2_out);
-	//return Py_None;
+	return Py_BuildValue("(OOO)", x1_out, x2_out, times_out);
+	free(x1);
+	free(x2);
+	free(times);
 }
