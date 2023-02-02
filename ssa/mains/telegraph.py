@@ -6,11 +6,11 @@ import numpy as np
 
 end_time = 24.0
 k_on = 1.0
-k_off = 1.0
+k_off = 10.0
 ksyn = 10
-kdeg = 1
+kdeg = 5
 time_step = 0.005
-nreps = 2000
+nreps = 1000
 dt = 0.1
 x1_counts = []
 x2_counts = []
@@ -19,9 +19,10 @@ reaction_times = []
 
 
 a = 0
-b = 3
-r1 = 0.1
-r2 = 0.1
+b = 40
+r1 = 0.5
+r2 = 0.5
+Nt = 750
 P0 = np.array([1,0])
 t = np.linspace(0,end_time,int(end_time/dt))
 tsm = TwoStateMaster(r1,r2,a,b,k_off)
@@ -29,7 +30,7 @@ P = tsm.solve(P0,t)
 
 
 for n in range(nreps):
-    x1, x2, x3, times = telegraph([end_time,time_step,k_on,k_off,a,b,r1,r2,ksyn,kdeg])
+    x1, x2, x3, times = telegraph([end_time,time_step,k_on,k_off,a,b,r1,r2,ksyn,kdeg,Nt])
     x1_counts.append(x1)
     x2_counts.append(x2)
     x3_counts.append(x3)
@@ -85,9 +86,9 @@ avg_x2_counts /= num_x2_counts
 avg_x3_counts /= num_x3_counts
 
 # Plot the average species counts versus time
-fig, ax = plt.subplots(1,2,figsize=(6,3))
-ax[0].plot(t,P[0,:],color='blue',linewidth=5.0,label=r'$P_{on}$')
-ax[0].plot(t,P[1,:],color='red',linewidth=5.0,label=r'$P_{off}$')
+fig, ax = plt.subplots(1,3,figsize=(9,2))
+ax[0].plot(t,P[0,:],color='blue',linewidth=5.0,label=r'$P_{off}$')
+ax[0].plot(t,P[1,:],color='red',linewidth=5.0,label=r'$P_{on}$')
 ax[0].scatter(time[1:], avg_x1_counts[1:],s=7,color='blue')
 ax[0].scatter(time[1:], avg_x2_counts[1:],s=7,color='red')
 ax[0].legend()
@@ -96,6 +97,9 @@ ax[0].set_ylabel('Probability')
 ax[1].scatter(time,avg_x3_counts,color='black')
 ax[1].set_xlabel('Time (hours)')
 ax[1].set_ylabel('<RNA>')
+ax[2].plot(t,a+b*(1-np.exp(-r1*t))*np.exp(-r2*t),color='black')
+ax[2].set_ylabel('$k_{on}$')
+ax[2].set_xlabel('Time (hours)')
 plt.tight_layout()
 plt.show()
 

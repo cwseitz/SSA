@@ -43,7 +43,7 @@ void update_p(double t, double p[], double k_on, double k_off,
               double a, double b, double r1, double r2, double ksyn, double kdeg, int x[]){
 	p[0] = a + b*(1-exp(-r1*t))*exp(-r2*t);
 	p[1] = k_off;
-	p[2] = ksyn*x[0];
+	p[2] = ksyn*x[1];
 	p[3] = kdeg;
 	//printf("Time %f, k_on = %f, k_off = %f\n", t, p[0], p[1]);
 }
@@ -168,8 +168,8 @@ static PyObject* telegraph(PyObject* Py_UNUSED(self), PyObject* args) {
     double r2 = PyFloat_AsDouble(PyList_GetItem(list, 7));
     double ksyn = PyFloat_AsDouble(PyList_GetItem(list, 8));
     double kdeg = PyFloat_AsDouble(PyList_GetItem(list, 9));
+    int Nt = PyLong_AsLong(PyList_GetItem(list, 10));
  
-	int Nt = 500;
 	int* x1 = calloc(Nt, sizeof(int));
 	int* x2 = calloc(Nt, sizeof(int));
 	int* x3 = calloc(Nt, sizeof(int));

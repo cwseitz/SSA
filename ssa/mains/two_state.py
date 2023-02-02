@@ -70,8 +70,8 @@ avg_x2_counts /= num_x2_counts
 
 # Plot the average species counts versus time
 fig, ax = plt.subplots(1,2,figsize=(6,3))
-ax[0].plot(t,P[0,:],color='blue',linewidth=5.0,label=r'$P_{on}$')
-ax[0].plot(t,P[1,:],color='red',linewidth=5.0,label=r'$P_{off}$')
+ax[0].plot(t,P[0,:],color='blue',linewidth=5.0,label=r'$P_{off}$')
+ax[0].plot(t,P[1,:],color='red',linewidth=5.0,label=r'$P_{on}$')
 ax[0].scatter(time[1:], avg_x1_counts[1:],s=7,color='blue')
 ax[0].scatter(time[1:], avg_x2_counts[1:],s=7,color='red')
 ax[0].legend()
