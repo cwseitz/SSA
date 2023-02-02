@@ -6,9 +6,11 @@
 #include <sys/time.h>
 #include <complex.h>
 #include "two_state.c"
+#include "telegraph.c"
 
 static PyMethodDef SSAMethods[] = {
     {"two_state", two_state, METH_VARARGS, "SSA in C"},
+    {"telegraph", telegraph, METH_VARARGS, "SSA in C"},
     {NULL, NULL, 0, NULL},
 };
 
