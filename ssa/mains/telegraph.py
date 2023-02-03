@@ -5,10 +5,9 @@ import time
 import numpy as np
 
 end_time = 24.0
-k_on = 1.0
-k_off = 10.0
+k_off = 1.0
 ksyn = 10
-kdeg = 5
+kdeg = 1
 time_step = 0.005
 nreps = 1000
 dt = 0.1
@@ -19,9 +18,9 @@ reaction_times = []
 
 
 a = 0
-b = 40
-r1 = 0.5
-r2 = 0.5
+b = 4
+r1 = 0.1
+r2 = 0.1
 Nt = 750
 P0 = np.array([1,0])
 t = np.linspace(0,end_time,int(end_time/dt))
@@ -30,7 +29,7 @@ P = tsm.solve(P0,t)
 
 
 for n in range(nreps):
-    x1, x2, x3, times = telegraph([end_time,time_step,k_on,k_off,a,b,r1,r2,ksyn,kdeg,Nt])
+    x1, x2, x3, times = telegraph([end_time,time_step,k_off,a,b,r1,r2,ksyn,kdeg,Nt])
     x1_counts.append(x1)
     x2_counts.append(x2)
     x3_counts.append(x3)

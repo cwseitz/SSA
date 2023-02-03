@@ -9,43 +9,22 @@
 #define N         4		// number of reaction
 #define M         3		// number of chemical species
 	
-void init(int x[], int s[N][M]){
+void init(int x[]){
 
 	// population of chemical species
 	x[0] = 1;
 	x[1] = 0;
 	x[2] = 0;
 
-    //on
-	s[0][0] = -1;
-	s[0][1] =  1;
-	s[0][2] = 0;
-	
-	//off
-	s[1][0] = 1;
-	s[1][1] =  -1;
-	s[1][2] = 0;
-
-    //synthesis
-	s[2][0] = 0;
-	s[2][1] = 0;
-	s[2][2] = 1;
-
-    //degradation
-	s[3][0] = 0;
-	s[3][1] = 0;
-	s[3][2] = -1;
-
 }
 
 
-void update_p(double t, double p[], double k_on, double k_off, 
+void update_p(double t, double p[], double k_off, 
               double a, double b, double r1, double r2, double ksyn, double kdeg, int x[]){
 	p[0] = a + b*(1-exp(-r1*t))*exp(-r2*t);
 	p[1] = k_off;
-	p[2] = ksyn*x[1];
+	p[2] = ksyn;
 	p[3] = kdeg;
-	//printf("Time %f, k_on = %f, k_off = %f\n", t, p[0], p[1]);
 }
 
 
@@ -93,12 +72,10 @@ double sum(double a[], int n){
 	return(s);
 }
 
-int telegraph_ssa(int* x1, int* x2, int* x3, double* times, double end_time, double time_step, double k_on, double k_off, double a, double b, double r1, double r2, double ksyn, double kdeg){
+int telegraph_ssa(int* x1, int* x2, int* x3, double* times, double end_time, double time_step, double k_off, double a, double b, double r1, double r2, double ksyn, double kdeg){
 
 	int x[M];			    // population of chemical species
-	double c[N];			// reaction rates
 	double p[N];			// propencities of reaction
-	int s[N][M];			// data structure for updating x[]
 
 	// initialization
 	double sum_propencity = 0.0;	// sum of propencities
@@ -107,7 +84,7 @@ int telegraph_ssa(int* x1, int* x2, int* x3, double* times, double end_time, dou
 	double r;			// random number
 	int reaction;			// reaction number selected
 
-	init(x, s);
+	init(x);
     int i = 0;
     time_t current_time = time(NULL);
     double seed = (double)current_time + (double)clock() / CLOCKS_PER_SEC;
@@ -117,11 +94,11 @@ int telegraph_ssa(int* x1, int* x2, int* x3, double* times, double end_time, dou
 	x3[0] = 0;
 		
 	// main loop
-	//printf("Time: 0 hours, x1=%d, x2=%d \n", x1[0], x2[0]);
+	printf("Time: 0 hours, x1=%d, x2=%d \n", x1[0], x2[0]);
 	while(t < end_time){
 		
 		// update propencity
-		update_p(t, p, k_on, k_off, a, b, r1, r2, ksyn, kdeg, x);
+		update_p(t, p, k_off, a, b, r1, r2, ksyn, kdeg, x);
 		sum_propencity = sum(p, N);
 	    i += 1;
 
@@ -144,7 +121,7 @@ int telegraph_ssa(int* x1, int* x2, int* x3, double* times, double end_time, dou
 		// time
 		t += tau;
 		times[i] = t;
-		//printf("Reaction: %d x1=%d, x2=%d, x3=%d\n", reaction, x1[i], x2[i], x3[i]);	
+		printf("Time: %f, Reaction: %d x1=%d, x2=%d, x3=%d\n", t, reaction, x1[i], x2[i], x3[i]);	
 	}
 	
 	return(0);
@@ -160,23 +137,22 @@ static PyObject* telegraph(PyObject* Py_UNUSED(self), PyObject* args) {
     
     double end_time = PyFloat_AsDouble(PyList_GetItem(list, 0));
     double time_step = PyFloat_AsDouble(PyList_GetItem(list, 1));
-    double k_on = PyFloat_AsDouble(PyList_GetItem(list, 2));
-    double k_off = PyFloat_AsDouble(PyList_GetItem(list, 3));
-    double a = PyFloat_AsDouble(PyList_GetItem(list, 4));
-    double b = PyFloat_AsDouble(PyList_GetItem(list, 5));
-    double r1 = PyFloat_AsDouble(PyList_GetItem(list, 6));
-    double r2 = PyFloat_AsDouble(PyList_GetItem(list, 7));
-    double ksyn = PyFloat_AsDouble(PyList_GetItem(list, 8));
-    double kdeg = PyFloat_AsDouble(PyList_GetItem(list, 9));
-    int Nt = PyLong_AsLong(PyList_GetItem(list, 10));
+    double k_off = PyFloat_AsDouble(PyList_GetItem(list, 2));
+    double a = PyFloat_AsDouble(PyList_GetItem(list, 3));
+    double b = PyFloat_AsDouble(PyList_GetItem(list, 4));
+    double r1 = PyFloat_AsDouble(PyList_GetItem(list, 5));
+    double r2 = PyFloat_AsDouble(PyList_GetItem(list, 6));
+    double ksyn = PyFloat_AsDouble(PyList_GetItem(list, 7));
+    double kdeg = PyFloat_AsDouble(PyList_GetItem(list, 8));
+    int Nt = PyLong_AsLong(PyList_GetItem(list, 9));
  
 	int* x1 = calloc(Nt, sizeof(int));
 	int* x2 = calloc(Nt, sizeof(int));
 	int* x3 = calloc(Nt, sizeof(int));
 	double* times = calloc(Nt, sizeof(double));
-	telegraph_ssa(x1,x2,x3,times,end_time,time_step,k_on,k_off,a,b,r1,r2,ksyn,kdeg);
+	telegraph_ssa(x1,x2,x3,times,end_time,time_step,k_off,a,b,r1,r2,ksyn,kdeg);
 
-	npy_intp dims[1] = {Nt}; //row major order
+	npy_intp dims[1] = {Nt};
 	PyObject *x1_out = PyArray_SimpleNew(1, dims, NPY_INT);
 	PyObject *x2_out = PyArray_SimpleNew(1, dims, NPY_INT);
 	PyObject *x3_out = PyArray_SimpleNew(1, dims, NPY_INT);
