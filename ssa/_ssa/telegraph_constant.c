@@ -24,8 +24,7 @@ void update_p(double t, double p[], double k_on, double k_off, double ksyn, doub
 	p[0] = k_on*x[0];
 	p[1] = k_off*x[1];
 	p[2] = ksyn*x[1];
-	p[3] = 0;
-	//p[3] = kdeg;
+	p[3] = kdeg;
 	//printf("%f, %f, %f, %f",p[0],p[1],p[2],p[3]);
 }
 
