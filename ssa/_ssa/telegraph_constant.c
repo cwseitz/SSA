@@ -74,7 +74,7 @@ double sum(double a[], int n){
 	return(s);
 }
 
-int telegraph_constant_ssa(int* x1, int* x2, int* x3, double* times, double end_time, double time_step, double k_on, double k_off, double ksyn, double kdeg){
+int telegraph_constant_ssa(int* x1, int* x2, int* x3, double* times, double end_time, double k_on, double k_off, double ksyn, double kdeg){
 
 	int x[M];			    // population of chemical species
 	double p[N];			// propencities of reaction
@@ -138,18 +138,17 @@ static PyObject* telegraph_constant(PyObject* Py_UNUSED(self), PyObject* args) {
     return NULL;
     
     double end_time = PyFloat_AsDouble(PyList_GetItem(list, 0));
-    double time_step = PyFloat_AsDouble(PyList_GetItem(list, 1));
-    double k_on = PyFloat_AsDouble(PyList_GetItem(list, 2));
-    double k_off = PyFloat_AsDouble(PyList_GetItem(list, 3));
-    double ksyn = PyFloat_AsDouble(PyList_GetItem(list, 4));
-    double kdeg = PyFloat_AsDouble(PyList_GetItem(list, 5));
-    int Nt = PyLong_AsLong(PyList_GetItem(list, 6));
+    double k_on = PyFloat_AsDouble(PyList_GetItem(list, 1));
+    double k_off = PyFloat_AsDouble(PyList_GetItem(list, 2));
+    double ksyn = PyFloat_AsDouble(PyList_GetItem(list, 3));
+    double kdeg = PyFloat_AsDouble(PyList_GetItem(list, 4));
+    int Nt = PyLong_AsLong(PyList_GetItem(list, 5));
  
 	int* x1 = calloc(Nt, sizeof(int));
 	int* x2 = calloc(Nt, sizeof(int));
 	int* x3 = calloc(Nt, sizeof(int));
 	double* times = calloc(Nt, sizeof(double));
-	telegraph_constant_ssa(x1,x2,x3,times,end_time,time_step,k_on,k_off,ksyn,kdeg);
+	telegraph_constant_ssa(x1,x2,x3,times,end_time,k_on,k_off,ksyn,kdeg);
 
 	npy_intp dims[1] = {Nt};
 	PyObject *x1_out = PyArray_SimpleNew(1, dims, NPY_INT);

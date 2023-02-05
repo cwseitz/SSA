@@ -29,26 +29,26 @@ def get_discrete_values(times, x1, x2, x3, Nt, T=5):
     return discrete_times, discrete_values
 
 
-end_time = 24.0
+end_time = 10.0
 k_on = 1.0
 k_off = 1.0
-ksyn = 10.0
+ksyn = 5.0
 kdeg = 1.0
 time_step = 0.005
-Nreps = 100
+Nreps = 50
 dt = 0.1
 Nt = 500
 Nsamp = 10000
 
 P0 = np.array([1,0])
-t = np.linspace(0,end_time,int(end_time/dt))
+t = np.linspace(0,end_time,Nt)
 tsm = TwoStateConstMasterMatrixExp(k_on,k_off)
 P = tsm.solve(P0,t)
 
 X = np.zeros((Nreps,3,Nsamp))
 for n in range(Nreps):
     print(f'Simulating Rep {n}')
-    x1, x2, x3, times = telegraph_constant([end_time,time_step,k_on,k_off,ksyn,kdeg,Nt])
+    x1, x2, x3, times = telegraph_constant([end_time,k_on,k_off,ksyn,kdeg,Nt])
     values = [x1, x2, x3]
     discrete_times, discrete_values = get_discrete_values(times, x1, x2, x3, Nsamp)
     X[n,:,:] = discrete_values
