@@ -6,8 +6,8 @@ import numpy as np
 
 end_time = 24.0
 k_off = 1.0
-ksyn = 10
-kdeg = 1
+ksyn = 10.0
+kdeg = 0.0
 time_step = 0.005
 nreps = 1000
 dt = 0.1
@@ -17,7 +17,7 @@ x3_counts = []
 reaction_times = []
 
 
-a = 0
+a = 0.1
 b = 4
 r1 = 0.1
 r2 = 0.1
