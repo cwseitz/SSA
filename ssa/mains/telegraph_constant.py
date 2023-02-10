@@ -35,15 +35,15 @@ def get_discrete_values(times, x1, x2, x3, Nt, T=5):
     return discrete_times, discrete_values
 
 
-end_time = 5.0
+end_time = 30.0
 k_on = 1.0
-k_off = 1.0
-ksyn = 3.0
-kdeg = 1.0
+k_off = 20.0
+ksyn = 20.0
+kdeg = 0.0
 time_step = 0.005
-Nreps = 200
-dt = 0.1
-Nt = 500
+Nreps = 100
+dt = 0.01
+Nt = 1000
 Nsamp = 20000
 
 P0 = np.array([1,0])
@@ -52,18 +52,31 @@ tsm = TwoStateConstMasterMatrixExp(k_on,k_off)
 P = tsm.solve(P0,t)
 
 X = np.zeros((Nreps,3,Nsamp))
-for n in range(Nreps):
+n = 0
+while n < Nreps:
     print(f'Simulating Rep {n}')
     x1, x2, x3, times = telegraph_constant([end_time,k_on,k_off,ksyn,kdeg,Nt])
     values = [x1, x2, x3]
-    discrete_times, discrete_values = get_discrete_values(times, x1, x2, x3, Nsamp)
-    X[n,:,:] = discrete_values
+    #print(times)
+    try:
+        discrete_times, discrete_values = get_discrete_values(times, x1, x2, x3, Nsamp)
+        X[n,:,:] = discrete_values
+        n += 1
+    except: 
+        print('Skipping rep {n} for reaction spacing')
 
 
 pct_on = np.mean(X[:,1,:],axis=0)
 pct_off = np.mean(X[:,0,:],axis=0)
 
-# Plot the average species counts versus time
+for n in range(Nreps):
+    plt.plot(X[n,2,:])
+plt.show()
+
+plt.plot(np.mean(X[:,2,:],axis=0))
+plt.show()
+
+"""
 fig, ax = plt.subplots(figsize=(6,2))
 ax.plot(t,P[0,:],color='blue',linewidth=5.0,label=r'$P_{off}$')
 ax.plot(t,P[1,:],color='red',linewidth=5.0,label=r'$P_{on}$')
@@ -74,8 +87,7 @@ ax.scatter(discrete_times,pct_on,color='red')
 ax.scatter(discrete_times,pct_off,color='blue')
 plt.tight_layout()
 plt.show()
-
-
+"""
 
 
 

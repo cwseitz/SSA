@@ -21,11 +21,14 @@ void init(int x[]){
 
 void update_p(double t, double p[], double k_on, double k_off, double ksyn, double kdeg, int x[]){
 
+    double K = 3;
+    double n = 100;
+    k_on = 1/(1+pow(x[2]/K,n));
 	p[0] = k_on*x[0];
 	p[1] = k_off*x[1];
 	p[2] = ksyn*x[1];
 	p[3] = kdeg;
-	//printf("%f, %f, %f, %f",p[0],p[1],p[2],p[3]);
+	printf("%f, %f, %f, %f\n",p[0],p[1],p[2],p[3]);
 }
 
 
@@ -122,6 +125,7 @@ int telegraph_constant_ssa(int* x1, int* x2, int* x3, double* times, double end_
 		// time
 		t += tau;
 		times[i] = t;
+		printf("x1=%d, x2=%d, x3=%d\n", x1[i], x2[i], x3[i]);	
 		//printf("Time: %f, Reaction: %d x1=%d, x2=%d, x3=%d\n", t, reaction, x1[i], x2[i], x3[i]);	
 	}
 	
