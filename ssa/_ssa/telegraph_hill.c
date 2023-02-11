@@ -22,7 +22,6 @@ void init_hill(int x[]){
 void update_p_hill(double t, double p[], double k_on, double k_off, double ksyn, double kdeg, double K, double n, int x[]){
 
     k_on = k_on/(1+pow(x[2]/K,n));
-    kdeg = kdeg/(1+pow(x[2]/K,-100));
 	p[0] = k_on*x[0];
 	p[1] = k_off*x[1];
 	p[2] = ksyn*x[1];
