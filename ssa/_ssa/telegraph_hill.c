@@ -9,7 +9,7 @@
 #define N         4		// number of reaction
 #define M         3		// number of chemical species
 	
-void init(int x[]){
+void init_hill(int x[]){
 
 	// population of chemical species
 	x[0] = 1;
@@ -19,8 +19,10 @@ void init(int x[]){
 }
 
 
-void update_p(double t, double p[], double k_on, double k_off, double ksyn, double kdeg, int x[]){
+void update_p_hill(double t, double p[], double k_on, double k_off, double ksyn, double kdeg, double K, double n, int x[]){
 
+    k_on = k_on/(1+pow(x[2]/K,n));
+    kdeg = kdeg/(1+pow(x[2]/K,-100));
 	p[0] = k_on*x[0];
 	p[1] = k_off*x[1];
 	p[2] = ksyn*x[1];
@@ -29,7 +31,7 @@ void update_p(double t, double p[], double k_on, double k_off, double ksyn, doub
 }
 
 
-int select_reaction(double p[], int pn, double sum_propencity, double r){
+int select_reaction_hill(double p[], int pn, double sum_propencity, double r){
 	int reaction = -1;
 	double sp = 0.0;
 	int i;
@@ -44,7 +46,7 @@ int select_reaction(double p[], int pn, double sum_propencity, double r){
 	return reaction;
 }
 
-void update_x(int x[], int reaction){
+void update_x_hill(int x[], int reaction){
 	if (reaction == 0){
 	   x[0] = 0; 
 	   x[1] = 1;
@@ -65,7 +67,7 @@ void update_x(int x[], int reaction){
 
 }
 
-double sum(double a[], int n){
+double sum_hill(double a[], int n){
 	int i;
 	double s=0.0;
 	for(i=0; i<n; i++) 
@@ -73,7 +75,7 @@ double sum(double a[], int n){
 	return(s);
 }
 
-int telegraph_constant_ssa(int* x1, int* x2, int* x3, double* times, double end_time, double k_on, double k_off, double ksyn, double kdeg){
+int telegraph_hill_ssa(int* x1, int* x2, int* x3, double* times, double end_time, double k_on, double k_off, double ksyn, double kdeg, double K, double n){
 
 	int x[M];			    // population of chemical species
 	double p[N];			// propencities of reaction
@@ -85,7 +87,7 @@ int telegraph_constant_ssa(int* x1, int* x2, int* x3, double* times, double end_
 	double r;			// random number
 	int reaction;			// reaction number selected
 
-	init(x);
+	init_hill(x);
     int i = 0;
     time_t current_time = time(NULL);
     double seed = (double)current_time + (double)clock() / CLOCKS_PER_SEC;
@@ -99,8 +101,8 @@ int telegraph_constant_ssa(int* x1, int* x2, int* x3, double* times, double end_
 	while(t < end_time){
 		
 		// update propencity
-		update_p(t, p, k_on, k_off, ksyn, kdeg, x);
-		sum_propencity = sum(p, N);
+		update_p_hill(t, p, k_on, k_off, ksyn, kdeg, K, n, x);
+		sum_propencity = sum_hill(p, N);
 	    i += 1;
 
 		// sample tau
@@ -112,9 +114,9 @@ int telegraph_constant_ssa(int* x1, int* x2, int* x3, double* times, double end_
 	
 		// select reaction
 		r = (double)rand()/INT_MAX;
-		reaction = select_reaction(p, N, sum_propencity, r);
+		reaction = select_reaction_hill(p, N, sum_propencity, r);
 		// update chemical species
-		update_x(x, reaction);
+		update_x_hill(x, reaction);
 		x1[i] = x[0];
 		x2[i] = x[1];
 		x3[i] = x[2];
@@ -130,7 +132,7 @@ int telegraph_constant_ssa(int* x1, int* x2, int* x3, double* times, double end_
 }
 
 
-static PyObject* telegraph_constant(PyObject* Py_UNUSED(self), PyObject* args) {
+static PyObject* telegraph_hill(PyObject* Py_UNUSED(self), PyObject* args) {
 
   PyObject* list;
 
@@ -143,12 +145,14 @@ static PyObject* telegraph_constant(PyObject* Py_UNUSED(self), PyObject* args) {
     double ksyn = PyFloat_AsDouble(PyList_GetItem(list, 3));
     double kdeg = PyFloat_AsDouble(PyList_GetItem(list, 4));
     int Nt = PyLong_AsLong(PyList_GetItem(list, 5));
+    double K = PyLong_AsLong(PyList_GetItem(list, 6));
+    double n = PyLong_AsLong(PyList_GetItem(list, 7));
  
 	int* x1 = calloc(Nt, sizeof(int));
 	int* x2 = calloc(Nt, sizeof(int));
 	int* x3 = calloc(Nt, sizeof(int));
 	double* times = calloc(Nt, sizeof(double));
-	telegraph_constant_ssa(x1,x2,x3,times,end_time,k_on,k_off,ksyn,kdeg);
+	telegraph_hill_ssa(x1,x2,x3,times,end_time,k_on,k_off,ksyn,kdeg,K,n);
 
 	npy_intp dims[1] = {Nt};
 	PyObject *x1_out = PyArray_SimpleNew(1, dims, NPY_INT);
