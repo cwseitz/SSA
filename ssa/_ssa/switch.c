@@ -9,7 +9,7 @@
 #define N         4		// number of reaction
 #define M         3		// number of chemical species
 
-static void init(int x[]){
+static void switch_init(int x[]){
 
 	// population of chemical species
 	x[0] = 1;
@@ -18,17 +18,17 @@ static void init(int x[]){
 
 }
 
-static void update_p(double t, double p[], double k_on, double k_off, double k_syn, double k_deg, int x[]){
+static void switch_update_p(double t, double p[], double k1, double k2, double k3, double k4, int x[]){
 
-	p[0] = k_on*x[0];
-	p[1] = k_off*x[1];
-	p[2] = k_syn*x[1];
-	p[3] = k_deg*x[2];
-	//printf("%f, %f, %f, %f\n",p[0],p[1],p[2],p[3]);
+	p[0] = k1*x[0];
+	p[1] = k2*x[1];
+	p[2] = k3*x[1];
+	p[3] = k4*x[2];
+
 }
 
 
-static int select_reaction(double p[], int pn, double sum_propencity, double r){
+static int switch_select_reaction(double p[], int pn, double sum_propencity, double r){
 	int reaction = -1;
 	double sp = 0.0;
 	int i;
@@ -43,28 +43,30 @@ static int select_reaction(double p[], int pn, double sum_propencity, double r){
 	return reaction;
 }
 
-static void update_x(int x[], int reaction){
+static void switch_update_x(int x[], int reaction){
 	if (reaction == 0){
 	   x[0] = 0; 
 	   x[1] = 1;
+	   x[2] = 0;
 	} 
 	else if (reaction == 1){
 	   x[0] = 1;
 	   x[1] = 0;
+	   x[2] = 0;
 	   }
 	else if (reaction == 2){
-	    x[2] = x[2] + 1;
+	    x[0] = 0;
+	    x[1] = 0;
+	    x[2] = 1;
 	}
 	else if (reaction == 3){
-	    x[2] = x[2] - 1;
-	    if (x[2] < 0){
-	       x[2] = 0;
-	       }
+	    x[0] = 1;
+	    x[1] = 0;
+	    x[2] = 0;
 	    }
-
 }
 
-static double sum(double a[], int n){
+static double switch_sum(double a[], int n){
 	int i;
 	double s=0.0;
 	for(i=0; i<n; i++) 
@@ -72,8 +74,8 @@ static double sum(double a[], int n){
 	return(s);
 }
 
-static int telegraph_constant_ssa(int** x1_ptr, int** x2_ptr, int** x3_ptr, double** times_ptr, int* length, 
-                           double end_time, double k_on, double k_off, double k_syn, double k_deg){
+static int photoswitch_ssa(int** x1_ptr, int** x2_ptr, int** x3_ptr, double** times_ptr, int* length, 
+                           double end_time, double k1, double k2, double k3, double k4){
 
     *length = 1;
     double* times = (double*) calloc(*length, sizeof(double));
@@ -107,8 +109,8 @@ static int telegraph_constant_ssa(int** x1_ptr, int** x2_ptr, int** x3_ptr, doub
         x2 = (int*) realloc(x2, *length*sizeof(int));
         x3 = (int*) realloc(x3, *length*sizeof(int));
 
-		update_p(t, p, k_on, k_off, k_syn, k_deg, x);
-		sum_propencity = sum(p, N);
+		switch_update_p(t, p, k1, k2, k3, k4, x);
+		sum_propencity = switch_sum(p, N);
 	    i += 1;
 
 		if(sum_propencity > 0){
@@ -118,8 +120,8 @@ static int telegraph_constant_ssa(int** x1_ptr, int** x2_ptr, int** x3_ptr, doub
 		}
 	
 		r = (double)rand()/INT_MAX;
-		reaction = select_reaction(p, N, sum_propencity, r);
-		update_x(x, reaction);
+		reaction = switch_select_reaction(p, N, sum_propencity, r);
+		switch_update_x(x, reaction);
 
 		x1[i] = x[0];
 		x2[i] = x[1];
@@ -139,7 +141,7 @@ static int telegraph_constant_ssa(int** x1_ptr, int** x2_ptr, int** x3_ptr, doub
 }
 
 
-static PyObject* telegraph_constant(PyObject* Py_UNUSED(self), PyObject* args) {
+static PyObject* photoswitch(PyObject* Py_UNUSED(self), PyObject* args) {
 
   PyObject* list;
 
@@ -147,10 +149,10 @@ static PyObject* telegraph_constant(PyObject* Py_UNUSED(self), PyObject* args) {
     return NULL;
     
     double end_time = PyFloat_AsDouble(PyList_GetItem(list, 0));
-    double k_on = PyFloat_AsDouble(PyList_GetItem(list, 1));
-    double k_off = PyFloat_AsDouble(PyList_GetItem(list, 2));
-    double k_syn = PyFloat_AsDouble(PyList_GetItem(list, 3));
-    double k_deg = PyFloat_AsDouble(PyList_GetItem(list, 4));
+    double k1 = PyFloat_AsDouble(PyList_GetItem(list, 1));
+    double k2 = PyFloat_AsDouble(PyList_GetItem(list, 2));
+    double k3 = PyFloat_AsDouble(PyList_GetItem(list, 3));
+    double k4 = PyFloat_AsDouble(PyList_GetItem(list, 4));
  
     double *times = NULL;
     int *x1 = NULL;
@@ -158,7 +160,7 @@ static PyObject* telegraph_constant(PyObject* Py_UNUSED(self), PyObject* args) {
     int *x3 = NULL;
     int *length = (int*) calloc(1, sizeof(int));
 
-    telegraph_constant_ssa(&x1,&x2,&x3,&times,length,end_time,k_on,k_off,k_syn,k_deg);
+    photoswitch_ssa(&x1,&x2,&x3,&times,length,end_time,k1,k2,k3,k4);
 
 	npy_intp dims[1] = {*length};
 	PyObject *x1_out = PyArray_SimpleNew(1, dims, NPY_INT);
