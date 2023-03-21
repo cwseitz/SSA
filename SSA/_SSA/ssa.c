@@ -15,15 +15,15 @@ static PyMethodDef SSAMethods[] = {
 };
 
 
-static struct PyModuleDef _ssa = {
+static struct PyModuleDef _SSA = {
     PyModuleDef_HEAD_INIT,
-    "_ssa",
+    "_SSA",
     "Python interface for IF network in C",
     -1,
     SSAMethods
 };
 
-PyMODINIT_FUNC PyInit__ssa(void) {
+PyMODINIT_FUNC PyInit__SSA(void) {
     import_array();
-    return PyModule_Create(&_ssa);
+    return PyModule_Create(&_SSA);
 }
