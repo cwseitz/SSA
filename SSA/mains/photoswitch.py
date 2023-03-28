@@ -1,5 +1,5 @@
 from SSA._SSA import photoswitch
-from bin_ssa import bin_ssa
+from SSA import bin_ssa
 import matplotlib.pyplot as plt
 import numpy as np
 
