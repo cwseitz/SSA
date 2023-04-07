@@ -1,8 +1,9 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
-def bin_lifetime(life0,life1,density=False):
-    vals0, bins0 = np.histogram(life0,bins=20,density=density)
-    vals1, bins1 = np.histogram(life1,bins=20,density=density)
+def bin_lifetime(life0,life1,bins,density=False):
+    vals0, bins0 = np.histogram(life0,bins=bins,density=density)
+    vals1, bins1 = np.histogram(life1,bins=bins,density=density)
     return vals0, vals1
 
 def lifetime4s(X,dt):
