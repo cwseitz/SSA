@@ -1,10 +1,10 @@
 from SSA._SSA import photoswitch
-from SSA import bin_ssa
+from SSA.utils import bin_ssa
 import matplotlib.pyplot as plt
 import numpy as np
 
 dt = 0.001 #us
-T = 10e4*dt #100 ms
+Nt = 100000
 
 k12 = 400.0e-3 #ms^-1
 k23 = 30.0e-3
@@ -13,12 +13,12 @@ k21 = 80.0e-3
 k31 = 4.0e-3
 k41 = 0.15e-3
 
-trials = 1000
+trials = 100
 
-X = np.zeros((trials,4,round(T/dt)))
+X = np.zeros((trials,4,Nt))
 for n in range(trials):
-    x1, x2, x3, x4, times = photoswitch([T,k12,k23,k34,k41,k31,k21])
-    t_bins, x1_binned, x2_binned, x3_binned, x4_binned = bin_ssa(times, x1, x2, x3, x4, dt, T)
+    x1, x2, x3, x4, times = photoswitch([Nt*dt,k12,k23,k34,k41,k31,k21])
+    t_bins, x1_binned, x2_binned, x3_binned, x4_binned = bin_ssa(times, x1, x2, x3, x4, dt, Nt*dt)
     X[n,0,:] = x1_binned
     X[n,1,:] = x2_binned
     X[n,2,:] = x3_binned
