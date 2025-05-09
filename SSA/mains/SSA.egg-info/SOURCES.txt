@@ -1,0 +1,4 @@
+SSA.egg-info/PKG-INFO
+SSA.egg-info/SOURCES.txt
+SSA.egg-info/dependency_links.txt
+SSA.egg-info/top_level.txt
